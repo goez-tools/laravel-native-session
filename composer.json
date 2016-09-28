@@ -1,0 +1,22 @@
+{
+  "name": "goez/laravel-native-session",
+  "description": "Laravel session driver for PHP native session",
+  "authors": [
+    {
+      "name": "Jace Ju",
+      "email": "jaceju@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {},
+  "require-dev": {
+    "phpunit/phpunit": "*",
+    "illuminate/support": "^5.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Goez\\LaravelNativeSession\\": "src/"
+    }
+  },
+  "license": "MIT"
+}
