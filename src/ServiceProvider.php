@@ -21,6 +21,7 @@ class ServiceProvider extends LaravelSeviceProvider
     public function register()
     {
         $this->extendNativeDriver();
+        $this->registerFacade();
     }
 
     /**
@@ -30,6 +31,13 @@ class ServiceProvider extends LaravelSeviceProvider
     {
         $this->app['session']->extend('native', function ($app) {
             return new NativeSessionHandler();
+        });
+    }
+
+    private function registerFacade()
+    {
+        $this->app->singleton('native-session', function () {
+            return new Store();
         });
     }
 }
