@@ -36,22 +36,12 @@ Include the service provider within `config/app.php`.
 ];
 ```
 
-And change the `Session` alias:
+Finally, change the session cookie name in `config/session.php` (same as `session.name` in `php.ini`):
 
 ```php
-'aliases' => [
+return [
     ...
-    // 'Session' => Illuminate\Support\Facades\Session::class,
-    'Session' => Goez\LaravelNativeSession\Facade\NativeSession::class,
-    ...
-];
-```
-
-Finally, add middleware in `app/Http/Kernel.php` for session starting:
-
-```php
-protected $middleware = [
-    \Goez\LaravelNativeSession\Middleware\StartNativeSession::class,
+    'cookie' => 'PHPSESSID',
     ...
 ];
 ```

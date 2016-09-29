@@ -28,7 +28,20 @@ class Store implements SessionInterface
      */
     public function start()
     {
+        $this->startSession();
         return $this->session->start();
+    }
+
+    private function startSession()
+    {
+        session_id($this->session->getId());
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        foreach ($_SESSION as $name => $value) {
+            $this->session->set($name, $value);
+        }
     }
 
     /**
@@ -156,6 +169,7 @@ class Store implements SessionInterface
      */
     public function setId($id)
     {
+        session_id($id);
         return $this->session->setId($id);
     }
 
