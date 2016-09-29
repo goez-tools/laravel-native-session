@@ -23,12 +23,11 @@ class StartNativeSession
     /**
      * Create a new raw PHP session handler instance.
      *
-     * @param string $namespace Keep session data in a $_SESSION sub-array
      */
     private function startSession()
     {
         ini_restore('unserialize_callback_func');
-        if (session_status() == PHP_SESSION_NONE) {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
     }
