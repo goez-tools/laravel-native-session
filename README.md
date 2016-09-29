@@ -26,12 +26,32 @@ Instead, you may of course manually update your require block and run composer u
 }
 ```
 
-Include the service provider within config/app.php.
+Include the service provider within `config/app.php`.
 
 ```php
 'providers' => [
     ...
     Goez\LaravelNativeSession\ServiceProvider::class,
+    ...
+];
+```
+
+And change the `Session` alias:
+
+```php
+'aliases' => [
+    ...
+    // 'Session' => Illuminate\Support\Facades\Session::class,
+    'Session' => Goez\LaravelNativeSession\Facade\NativeSession::class,
+    ...
+];
+```
+
+Finally, add middleware in `app/Http/Kernel.php` for session starting:
+
+```php
+protected $middleware = [
+    \Goez\LaravelNativeSession\Middleware\StartNativeSession::class,
     ...
 ];
 ```

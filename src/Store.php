@@ -2,14 +2,22 @@
 
 namespace Goez\LaravelNativeSession;
 
-use Illuminate\Support\Arr;
+use Illuminate\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 
 class Store implements SessionInterface
 {
-    private $started = false;
+    /**
+     * @var SessionInterface
+     */
+    private $session;
+
+    public function __construct(SessionInterface $session)
+    {
+        $this->session = $session;
+    }
 
     /**
      * Starts the session storage.
@@ -20,7 +28,7 @@ class Store implements SessionInterface
      */
     public function start()
     {
-        $this->started = (session_status() === PHP_SESSION_ACTIVE);
+        return $this->session->start();
     }
 
     /**
@@ -31,16 +39,6 @@ class Store implements SessionInterface
     public function getId()
     {
         return session_id();
-    }
-
-    /**
-     * Sets the session ID.
-     *
-     * @param string $id
-     */
-    public function setId($id)
-    {
-        // Do nothing
     }
 
     /**
@@ -60,7 +58,8 @@ class Store implements SessionInterface
      */
     public function setName($name)
     {
-        // Do nothing
+        session_name($name);
+        $this->session->setName($name);
     }
 
     /**
@@ -79,6 +78,85 @@ class Store implements SessionInterface
     public function invalidate($lifetime = null)
     {
         session_destroy();
+        session_regenerate_id(true);
+        return $this->session->invalidate($lifetime);
+    }
+
+    /**
+     * Force the session to be saved and closed.
+     *
+     * This method is generally not required for real sessions as
+     * the session will be automatically saved at the end of
+     * code execution.
+     */
+    public function save()
+    {
+        session_write_close();
+        $this->session->save();
+    }
+
+    /**
+     * Sets an attribute.
+     *
+     * @param string $name
+     * @param mixed $value
+     */
+    public function set($name, $value)
+    {
+        $_SESSION[$name] = $value;
+        $this->session->set($name, $value);
+    }
+
+    /**
+     * Returns attributes.
+     *
+     * @return array Attributes
+     */
+    public function all()
+    {
+        return $this->session->all();
+    }
+
+    /**
+     * Checks if an attribute exists.
+     *
+     * @param  string|array $key
+     * @return bool
+     */
+    public function exists($key)
+    {
+        return $this->session->exists($key);
+    }
+
+    /**
+     * Determine if the session handler needs a request.
+     *
+     * @return bool
+     */
+    public function handlerNeedsRequest()
+    {
+        return $this->session->handlerNeedsRequest();
+    }
+
+    /**
+     * Set the request on the handler instance.
+     *
+     * @param  \Symfony\Component\HttpFoundation\Request $request
+     * @return void
+     */
+    public function setRequestOnHandler(Request $request)
+    {
+        $this->session->setRequestOnHandler($request);
+    }
+
+    /**
+     * Sets the session ID.
+     *
+     * @param string $id
+     */
+    public function setId($id)
+    {
+        return $this->session->setId($id);
     }
 
     /**
@@ -95,21 +173,7 @@ class Store implements SessionInterface
      */
     public function migrate($destroy = false, $lifetime = null)
     {
-        if ($destroy) {
-            $this->invalidate();
-        }
-    }
-
-    /**
-     * Force the session to be saved and closed.
-     *
-     * This method is generally not required for real sessions as
-     * the session will be automatically saved at the end of
-     * code execution.
-     */
-    public function save()
-    {
-        // Do nothing
+        return $this->session->migrate($destroy, $lifetime);
     }
 
     /**
@@ -121,7 +185,7 @@ class Store implements SessionInterface
      */
     public function has($name)
     {
-        return array_key_exists($name, $_SESSION);
+        return $this->session->has($name);
     }
 
     /**
@@ -134,28 +198,7 @@ class Store implements SessionInterface
      */
     public function get($name, $default = null)
     {
-        return Arr::get($_SESSION, $name, $default);
-    }
-
-    /**
-     * Sets an attribute.
-     *
-     * @param string $name
-     * @param mixed $value
-     */
-    public function set($name, $value)
-    {
-        Arr::set($_SESSION, $name, $value);
-    }
-
-    /**
-     * Returns attributes.
-     *
-     * @return array Attributes
-     */
-    public function all()
-    {
-        return $_SESSION;
+        return $this->session->get($name, $default);
     }
 
     /**
@@ -166,6 +209,7 @@ class Store implements SessionInterface
     public function replace(array $attributes)
     {
         $_SESSION = $attributes;
+        $this->session->replace($attributes);
     }
 
     /**
@@ -178,6 +222,7 @@ class Store implements SessionInterface
     public function remove($name)
     {
         unset($_SESSION[$name]);
+        return $this->session->remove($name);
     }
 
     /**
@@ -186,6 +231,7 @@ class Store implements SessionInterface
     public function clear()
     {
         $_SESSION = [];
+        $this->session->clear();
     }
 
     /**
@@ -195,7 +241,7 @@ class Store implements SessionInterface
      */
     public function isStarted()
     {
-        return $this->started;
+        return $this->session->isStarted();
     }
 
     /**
@@ -205,7 +251,7 @@ class Store implements SessionInterface
      */
     public function registerBag(SessionBagInterface $bag)
     {
-        // Do nothing
+        $this->session->registerBag($bag);
     }
 
     /**
@@ -217,7 +263,7 @@ class Store implements SessionInterface
      */
     public function getBag($name)
     {
-        return null;
+        return $this->session->getBag($name);
     }
 
     /**
@@ -227,6 +273,27 @@ class Store implements SessionInterface
      */
     public function getMetadataBag()
     {
-        return null;
+        return $this->session->getMetadataBag();
     }
+
+    /**
+     * Get the session handler instance.
+     *
+     * @return \SessionHandlerInterface
+     */
+    public function getHandler()
+    {
+        return $this->session->getHandler();
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        return call_user_func_array([$this->session, $name], $arguments);
+    }
+
 }
